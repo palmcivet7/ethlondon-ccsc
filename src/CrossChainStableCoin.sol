@@ -28,15 +28,15 @@ contract CrossChainStableCoin is ERC20Burnable, Ownable, IWormholeReceiver {
 
     constructor() ERC20("CrossChainStableCoin", "CCSC") {}
 
-    function burnFrom(address _to, uint256 _amount) private override {
-        uint256 balance = balanceOf(msg.sender);
+    function _internalBurnFrom(address _account, uint256 _amount) private {
+        uint256 balance = balanceOf(_account);
         if (_amount <= 0) {
             revert CrossChainStableCoin__MustBeMoreThanZero();
         }
         if (balance < _amount) {
             revert CrossChainStableCoin__BurnAmountExceedsBalance();
         }
-        super.burnFrom(_to, _amount);
+        _burn(_account, _amount);
     }
 
     function mint(address _to, uint256 _amount) private returns (bool) {
@@ -73,7 +73,7 @@ contract CrossChainStableCoin is ERC20Burnable, Ownable, IWormholeReceiver {
             mint(sender, amount);
         } else if (actionType == ActionType.BURN) {
             emit BurnRequested(amount, sourceChain, sender);
-            burnFrom(sender, amount);
+            _internalBurnFrom(sender, amount);
         }
     }
 }
