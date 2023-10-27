@@ -61,8 +61,8 @@ contract CrossChainStableCoin is ERC20Burnable, Ownable, IWormholeReceiver {
         uint16 sourceChain,
         bytes32 deliveryHash // this can be stored in a mapping deliveryHash => bool to prevent duplicate deliveries
     ) public payable override {
-        if(msg.sender != address(wormholeRelayer)) revert CrossChainStableCoin__InvalidRelayer();
-        if(seenDeliveryVaaHashes[deliveryHash]) revert CrossChainStableCoin__RequestAlreadyProcessed();
+        if (msg.sender != address(wormholeRelayer)) revert CrossChainStableCoin__InvalidRelayer();
+        if (seenDeliveryVaaHashes[deliveryHash]) revert CrossChainStableCoin__RequestAlreadyProcessed();
         seenDeliveryVaaHashes[deliveryHash] = true;
 
         // Parse the payload and do the corresponding actions!
@@ -72,7 +72,7 @@ contract CrossChainStableCoin is ERC20Burnable, Ownable, IWormholeReceiver {
             emit MintRequested(amount, sourceChain, sender);
             mint(sender, amount);
         } else if (actionType == ActionType.BURN) {
-            emit BurnRequested(uint256 amount, uint16 senderChain, address sender);
+            emit BurnRequested(amount, sourceChain, sender);
             burnFrom(sender, amount);
         }
     }
