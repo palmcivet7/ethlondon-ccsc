@@ -1,6 +1,6 @@
 # Cross Chain Stable Coin
 
-This project is an exogenously-collateralized cross-chain stablecoin, built from a token contract that is owned and controlled by an "engine" contract. The engine contract utilizes [API3](https://market.api3.org/dapis) for pricefeed data and [Wormhole](https://docs.wormhole.com/wormhole/) for cross chain functionality.
+This project is an exogenously-collateralized cross-chain stablecoin, built from a token contract that is controlled by an "engine" contract. The engine contract utilizes [API3](https://market.api3.org/dapis) for pricefeed data and [Wormhole](https://docs.wormhole.com/wormhole/) for cross chain functionality.
 
 ## Table of Contents
 
