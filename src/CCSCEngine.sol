@@ -2,7 +2,6 @@
 
 pragma solidity 0.8.18;
 
-import {CrossChainStableCoin} from "./CrossChainStableCoin.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IProxy} from "@api3/contracts/v0.8/interfaces/IProxy.sol";
@@ -27,7 +26,7 @@ contract CCSCEngine is ReentrancyGuard, Ownable {
     uint256 private constant LIQUIDATION_PRECISION = 100;
     uint256 private constant MIN_HEALTH_FACTOR = 1e18;
     uint256 private constant LIQUIDATION_BONUS = 10; // 10% bonus
-    uint256 private constant GAS_LIMIT = 200000;
+    uint256 private constant GAS_LIMIT = 1000000;
 
     mapping(address token => address priceFeed) private s_priceFeeds; // API3 feeds
     mapping(address user => mapping(address token => uint256 amount)) private s_collateralDeposited;
@@ -37,7 +36,7 @@ contract CCSCEngine is ReentrancyGuard, Ownable {
     IWormholeRelayer private wormholeRelayer;
 
     address private immutable targetAddress; // CCSC token
-    uint16 private immutable targetChain;
+    uint16 private targetChain;
 
     event CollateralDeposited(address indexed user, address indexed token, uint256 indexed amount);
     event CollateralRedeemed(
@@ -89,6 +88,14 @@ contract CCSCEngine is ReentrancyGuard, Ownable {
         wormholeRelayer.sendPayloadToEvm{value: paymentAmount}(targetChain, targetAddress, payload, 0, GAS_LIMIT);
     }
 
+    function setWormholeRelayer(IWormholeRelayer _wormholeRelayer) public onlyOwner {
+        wormholeRelayer = _wormholeRelayer;
+    }
+
+    function setTargetChain(uint16 _targetChain) public onlyOwner {
+        targetChain = _targetChain;
+    }
+
     //////////////////////////////
     //// External Functions /////
     ////////////////////////////
@@ -111,6 +118,9 @@ contract CCSCEngine is ReentrancyGuard, Ownable {
         }
 
         depositCollateral(tokenCollateralAddress, amountCollateral);
+
+        // mintCcsc(amountCcscToMint);
+
         (bool success,) =
             address(this).call{value: cost}(abi.encodeWithSelector(this.mintCcsc.selector, amountCcscToMint));
         if (!success) revert CCSCEngine__MintFailed();
@@ -121,11 +131,10 @@ contract CCSCEngine is ReentrancyGuard, Ownable {
      * @param tokenCollateralAddress The address of the token to deposit as collateral
      * @param amountCollateral The amount of collateral to deposit
      */
-    function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
-        public
-        isAllowedToken(tokenCollateralAddress)
-        moreThanZero(amountCollateral)
-        nonReentrant
+    function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral) public 
+    // isAllowedToken(tokenCollateralAddress)
+    // moreThanZero(amountCollateral)
+    // nonReentrant
     {
         s_collateralDeposited[msg.sender][tokenCollateralAddress] += amountCollateral;
         emit CollateralDeposited(msg.sender, tokenCollateralAddress, amountCollateral);
@@ -174,7 +183,7 @@ contract CCSCEngine is ReentrancyGuard, Ownable {
      * @param amountCcscToMint The amount of CCSC to mint
      * @notice User must have more collateral value than the minimum threshold
      */
-    function mintCcsc(uint256 amountCcscToMint) public payable moreThanZero(amountCcscToMint) nonReentrant {
+    function mintCcsc(uint256 amountCcscToMint) public payable /* moreThanZero(amountCcscToMint) nonReentrant */ {
         (uint256 cost,) = wormholeRelayer.quoteEVMDeliveryPrice(targetChain, 0, GAS_LIMIT);
         if (msg.value < cost) revert CCSCEngine__NeedsMorePayment();
         if (msg.value > cost) {
@@ -185,12 +194,6 @@ contract CCSCEngine is ReentrancyGuard, Ownable {
         _revertIfHealthFactorIsBroken(msg.sender);
 
         requestMintOnTargetChain(amountCcscToMint, cost);
-
-        // Return excess funds if any
-        uint256 excess = msg.value - cost;
-        if (excess > 0) {
-            payable(msg.sender).transfer(excess);
-        }
     }
 
     function burnCcsc(uint256 amount) public payable moreThanZero(amount) {
