@@ -19,3 +19,6 @@
 [submodule "lib/wormhole"]
 	path = lib/wormhole
 	url = https://github.com/wormhole-foundation/wormhole
+[submodule "lib/contracts"]
+	path = lib/contracts
+	url = https://github.com/api3dao/contracts
