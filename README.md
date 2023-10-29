@@ -85,6 +85,7 @@ The `setWormholeRelayer()` will have to be called on both contracts with their r
 ## Tx Hash
 
 [tx hash on Goerli](https://goerli.etherscan.io/tx/0x713c2158abf7fc1b5b1fc5c1a6b833ce3b2a3c1fb16218d68b3db96ec68e1b3a)
+
 [tx hash on Fuji](https://testnet.snowtrace.io/tx/0x78ec167a80ff0a367d436f6302b66d26643962c89ee0f951bb23ebe9d487da41)
 
 ## License

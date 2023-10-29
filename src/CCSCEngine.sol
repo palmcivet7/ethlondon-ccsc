@@ -183,7 +183,7 @@ contract CCSCEngine is ReentrancyGuard, Ownable {
      * @param amountCcscToMint The amount of CCSC to mint
      * @notice User must have more collateral value than the minimum threshold
      */
-    function mintCcsc(uint256 amountCcscToMint) public payable /* moreThanZero(amountCcscToMint) nonReentrant */ {
+    function mintCcsc(uint256 amountCcscToMint) public payable moreThanZero(amountCcscToMint) nonReentrant {
         (uint256 cost,) = wormholeRelayer.quoteEVMDeliveryPrice(targetChain, 0, GAS_LIMIT);
         if (msg.value < cost) revert CCSCEngine__NeedsMorePayment();
         if (msg.value > cost) {

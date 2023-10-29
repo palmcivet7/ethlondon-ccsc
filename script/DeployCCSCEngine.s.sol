@@ -6,7 +6,7 @@ import {Script} from "forge-std/Script.sol";
 import {CCSCEngine} from "../src/CCSCEngine.sol";
 import {HelperConfig} from "../script/HelperConfig.s.sol";
 
-contract DeployCCSC is Script {
+contract DeployCCSCEngine is Script {
     address[] public tokenAddresses;
     address[] public priceFeedAddresses;
     address public targetAddress = 0x6B86680B6f4f106ed05343aFA0eBe744dE0DF6d7; // CCSC Token on other Chain
@@ -15,12 +15,13 @@ contract DeployCCSC is Script {
     function run() external returns (CCSCEngine, HelperConfig) {
         HelperConfig config = new HelperConfig();
 
-        (address wethUsdPriceFeed, address wbtcUsdPrice, address weth, address wbtc) = config.activeNetworkConfig();
+        (address wethUsdPriceFeed, address wbtcUsdPrice, address weth, address wbtc, uint256 deployerKey) =
+            config.activeNetworkConfig();
 
         tokenAddresses = [weth, wbtc];
         priceFeedAddresses = [wethUsdPriceFeed, wbtcUsdPrice];
 
-        vm.startBroadcast();
+        vm.startBroadcast(deployerKey);
         CCSCEngine engine = new CCSCEngine(tokenAddresses, priceFeedAddresses, targetAddress, targetChain);
 
         vm.stopBroadcast();
